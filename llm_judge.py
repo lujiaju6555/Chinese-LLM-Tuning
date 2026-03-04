@@ -5,9 +5,9 @@ from tqdm import tqdm
 import os
 import re
 
-# API_KEY = "sk-50164861345148c1ac4f371a3674f127"  # 1
-API_KEY = "sk-075f638c1cbc4d2b91c04d38d04ccfdb"  # 2
-# API_KEY = "sk-2c3bde2ec4ea430f9b1daccaf20313e5"  # 3
+API_KEY = "xx"  # 此处请填写自己的API-KEY
+
+
 BASELINE_PATH = {
         'input_file': "./results/baseline/eval_response.json",
         'output_path': "./results/baseline/eval_result.json",
@@ -373,4 +373,5 @@ if __name__ == "__main__":
     stats = calculate_statistics(input_path=output_path, output_path=statistics_path)
 
     if stats:
+
         print(f"\n🎉 总平均分: {stats['scores']['average_score']}")
