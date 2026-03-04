@@ -8,15 +8,15 @@
 Chinese-LLM-Tuning/
 ├── requirements.txt       # 依赖包列表
 ├── .gitignore             # Git 忽略文件
-├── main.py          # 主程序，包括微调和偏好对齐
+├── main.ipynb          # 主程序，包括微调和偏好对齐
 ├── llm_judge.py         # 使用大模型评估
 ├── llm_preference.py     # 使用大模型构建偏好数据
 ├── check_preference.py     # 检查偏好数据
-├── vllm.py        # 部署vllm加速推理
-├── download_data.py        # 下载数据
+├── vllm.ipynb        # 部署vllm加速推理
+├── download_data.ipynb        # 下载数据
 ├── data/
-│   └── belle_eval.py  # 用于评估的belle数据
-│   └── cmmlu.py  # 用于评估的cmmlu数据
+│   └── belle_eval.json  # 用于评估的belle数据
+│   └── cmmlu.json  # 用于评估的cmmlu数据
 └── README.md             # 项目说明
 ```
 
