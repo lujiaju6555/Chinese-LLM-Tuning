@@ -16,7 +16,7 @@ def parse_args():
     # 推理配置
     parser.add_argument("--data_path", type=str, default="./data/belle_eval.json", help="评估数据路径")
     parser.add_argument("--output_path", type=str, default="./results/dpo/eval_response.json", help="推理结果保存路径")
-    parser.add_argument("--max_new_tokens", type=int, default=512, help="最大生成长度")
+    parser.add_argument("--max_new_tokens", type=int, default=2048, help="最大生成长度")
     parser.add_argument("--temperature", type=float, default=0.0, help="温度参数")
     parser.add_argument("--top_p", type=float, default=1.0, help="top_p 参数")
 
