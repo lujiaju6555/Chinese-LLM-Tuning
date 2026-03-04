@@ -51,7 +51,7 @@ python sft.py \
 
 ### 2. 生成偏好数据
 
-使用 `llm_preference.py` 生成偏好数据，然后使用 `llm_judge.py` 进行排序。
+使用 `llm_preference.py` 生成偏好数据。
 
 ### 3. DPO 训练
 
