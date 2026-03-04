@@ -1,6 +1,8 @@
 # Chinese-LLM-Tuning
 
-这是一个用于微调中文大语言模型的项目，包含 SFT（监督微调）和 DPO（直接偏好优化）训练流程，以及 vLLM 推理部署。
+本项目用于微调中文大语言模型，包含 SFT（监督微调）和 DPO（人类偏好对齐-直接偏好优化）训练流程，以及 vLLM 推理部署。项目总体目标是在保持模型性能（中文知识准确性）的同时，提高模型在中文任务上的表现。
+
+使用的基线模型为Qwen2.5-1.5B-Instruct，即使该模型已是主要针对中文任务的模型，但其在中文任务上的表现仍有提升空间。
 
 ## 项目结构
 
@@ -51,7 +53,23 @@ python sft.py \
 
 ### 2. 生成偏好数据
 
-使用 `llm_preference.py` 生成偏好数据。
+使用 `llm_preference.py` 生成偏好数据：
+
+```bash
+python llm_preference.py \
+    --api_key "your_api_key" \
+    --data_path ./data/belle_preference_response.json \
+    --output_path ./data/preference_data.json \
+    --model qwen-flash
+```
+
+**参数说明：**
+- `--api_key`：DASHSCOPE_API_KEY
+- `--data_path`：输入数据路径
+- `--output_path`：输出结果路径
+- `--model`：评估模型名称
+- `--delay`：请求间隔（秒）
+- `--max_workers`：最大并行工作线程数
 
 ### 3. DPO 训练
 
@@ -81,11 +99,27 @@ python vllm.py \
 
 ## 评估
 
-使用 `llm_judge.py` 对模型输出进行评估：
+使用 `llm_judge.py` 对模型输出进行评估，可分别对Baseline模型、SFT模型和DPO模型进行评估：
 
 ```bash
-python llm_judge.py
+python llm_judge.py \
+    --api_key "your_api_key" \
+    --target dpo \
+    --input_file ./results/dpo/eval_response.json \
+    --output_path ./results/dpo/eval_result.json \
+    --statistics_path ./results/dpo/score_statistics.json \
+    --judge_model qwen3.5-flash
 ```
+
+**参数说明：**
+- `--api_key`：DASHSCOPE_API_KEY
+- `--target`：目标评估模型（baseline/sft/dpo/grpo）
+- `--input_file`：输入文件路径
+- `--output_path`：输出结果路径
+- `--statistics_path`：统计结果保存路径
+- `--judge_model`：评估模型名称
+- `--delay`：请求间隔（秒）
+- `--max_workers`：最大并行工作线程数
 
 ## 主要功能
 

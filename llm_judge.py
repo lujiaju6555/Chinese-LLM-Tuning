@@ -4,10 +4,35 @@ from openai import OpenAI
 from tqdm import tqdm
 import os
 import re
+import argparse
 
-API_KEY = "xx"  # 此处请填写自己的API-KEY
+
+def parse_args():
+    """
+    解析命令行参数
+    """
+    parser = argparse.ArgumentParser(description="大模型评估脚本")
+    
+    # API 配置
+    parser.add_argument("--api_key", type=str, default="sk-075f638c1cbc4d2b91c04d38d04ccfdb", help="DASHSCOPE_API_KEY")
+    parser.add_argument("--judge_model", type=str, default="qwen3.5-flash", help="评估模型名称")
+    
+    # 目标模型配置
+    parser.add_argument("--target", type=str, default="dpo", choices=["baseline", "sft", "dpo", "grpo"], help="目标评估模型")
+    
+    # 文件路径配置
+    parser.add_argument("--input_file", type=str, help="输入文件路径")
+    parser.add_argument("--output_path", type=str, help="输出结果路径")
+    parser.add_argument("--statistics_path", type=str, help="统计结果保存路径")
+    
+    # 评估配置
+    parser.add_argument("--delay", type=float, default=1.0, help="请求间隔（秒）")
+    parser.add_argument("--max_workers", type=int, default=5, help="最大并行工作线程数")
+    
+    return parser.parse_args()
 
 
+# 路径配置
 BASELINE_PATH = {
         'input_file': "./results/baseline/eval_response.json",
         'output_path': "./results/baseline/eval_result.json",
@@ -23,8 +48,6 @@ DPO_PATH = {
     'output_path': "./results/dpo/eval_result.json",
     'statistics_path': "./results/dpo/score_statistics.json"
 }
-target = 'dpo'
-judge_model = 'qwen3.5-flash'
 
 class Evaluator:
     def __init__(self, api_key=None, base_url=None, model=judge_model):
@@ -325,22 +348,27 @@ def calculate_statistics(input_path="./results/baseline/eval_with_scores.json",
 
 # 使用示例
 if __name__ == "__main__":
+    # 解析命令行参数
+    args = parse_args()
+    
     # 初始化评估器
-    evaluator = Evaluator(api_key=API_KEY)
+    evaluator = Evaluator(api_key=args.api_key, model=args.judge_model)
 
     # 检查输入文件
     config = {}
-    if target == 'baseline':
+    if args.target == 'baseline':
         config = BASELINE_PATH
-    elif target == 'sft':
+    elif args.target == 'sft':
         config = SFT_PATH
-    elif target == 'dpo':
+    elif args.target == 'dpo':
         config = DPO_PATH
-    elif target == 'grpo':
+    elif args.target == 'grpo':
         config = BASELINE_PATH
-    input_file = config['input_file']
-    output_path = config['output_path']
-    statistics_path = config['statistics_path']
+    
+    # 使用命令行参数覆盖默认路径
+    input_file = args.input_file or config['input_file']
+    output_path = args.output_path or config['output_path']
+    statistics_path = args.statistics_path or config['statistics_path']
 
     if os.path.exists(input_file):
         print(f"✅ 找到输入文件: {input_file}")
@@ -355,7 +383,7 @@ if __name__ == "__main__":
                 "response": "这是模型回答"
             }
         ]
-        os.makedirs("./results/baseline", exist_ok=True)
+        os.makedirs(os.path.dirname(input_file), exist_ok=True)
         with open(input_file, "w", encoding="utf-8") as f:
             json.dump(sample_data, f, ensure_ascii=False, indent=2)
         print(f"已创建示例文件: {input_file}")
@@ -367,11 +395,11 @@ if __name__ == "__main__":
         evaluator.evaluate_batch(
             data_path=input_file,
             output_path=output_path,
-            delay=1
+            delay=args.delay,
+            max_workers=args.max_workers
         )
     # 在主评估完成后运行统计
     stats = calculate_statistics(input_path=output_path, output_path=statistics_path)
 
     if stats:
-
         print(f"\n🎉 总平均分: {stats['scores']['average_score']}")

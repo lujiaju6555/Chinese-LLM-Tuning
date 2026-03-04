@@ -5,8 +5,28 @@ from tqdm import tqdm
 import os
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import argparse
 
-API_KEY = "xx"
+
+def parse_args():
+    """
+    解析命令行参数
+    """
+    parser = argparse.ArgumentParser(description="大模型偏好数据生成脚本")
+    
+    # API 配置
+    parser.add_argument("--api_key", type=str, default="sk-2c3bde2ec4ea430f9b1daccaf20313e5", help="DASHSCOPE_API_KEY")
+    parser.add_argument("--model", type=str, default="qwen-flash", help="评估模型名称")
+    
+    # 文件路径配置
+    parser.add_argument("--data_path", type=str, default="./data/belle_preference_response.json", help="输入数据路径")
+    parser.add_argument("--output_path", type=str, default="./data/preference_data.json", help="输出结果路径")
+    
+    # 评估配置
+    parser.add_argument("--delay", type=float, default=0.5, help="请求间隔（秒）")
+    parser.add_argument("--max_workers", type=int, default=5, help="最大并行工作线程数")
+    
+    return parser.parse_args()
 
 
 class PreferenceRanker:
@@ -212,12 +232,15 @@ class PreferenceRanker:
         return list(completed_results.values())
 
 if __name__ == '__main__':
+    # 解析命令行参数
+    args = parse_args()
+    
     # 初始化排序器
-    ranker = PreferenceRanker(api_key=API_KEY)
+    ranker = PreferenceRanker(api_key=args.api_key, model=args.model)
     
     # 从指定路径加载数据
-    data_path = "./data/belle_preference_response.json"
-    output_path = "./data/preference_data.json"
+    data_path = args.data_path
+    output_path = args.output_path
     
     # 检查文件是否存在
     if not os.path.exists(data_path):
@@ -269,10 +292,9 @@ if __name__ == '__main__':
         ranker.rank_responses_batch(
             rank_data=valid_data,
             output_path=output_path,
-            delay=0.5,
-            max_workers=5
+            delay=args.delay,
+            max_workers=args.max_workers
         )
     else:
         print("❌ 没有有效的数据项")
-
         exit(1)
