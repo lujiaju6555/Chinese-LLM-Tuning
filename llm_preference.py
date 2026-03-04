@@ -6,9 +6,7 @@ import os
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# API_KEY = "sk-50164861345148c1ac4f371a3674f127"  # 1
-# API_KEY = "sk-075f638c1cbc4d2b91c04d38d04ccfdb"  # 2
-API_KEY = "sk-2c3bde2ec4ea430f9b1daccaf20313e5"  # 3
+API_KEY = "xx"
 
 
 class PreferenceRanker:
@@ -276,4 +274,5 @@ if __name__ == '__main__':
         )
     else:
         print("❌ 没有有效的数据项")
+
         exit(1)
