@@ -1,75 +1,102 @@
-# 面向中文指令的大模型后训练与部署系统
+# Chinese-LLM-Tuning
 
-本项目旨在使用 Qwen2.5-1.5B-Instruct 作为基座模型，通过 SFT（监督微调）和 DPO（对齐优化）技术，构建一个性能良好的中文大模型。
+这是一个用于微调中文大语言模型的项目，包含 SFT（监督微调）和 DPO（直接偏好优化）训练流程，以及 vLLM 推理部署。
 
 ## 项目结构
 
 ```
 Chinese-LLM-Tuning/
-├── requirements.txt       # 依赖包列表
-├── .gitignore             # Git 忽略文件
-├── main.ipynb          # 主程序，包括微调和偏好对齐
-├── llm_judge.py         # 使用大模型评估
-├── llm_preference.py     # 使用大模型构建偏好数据
-├── check_preference.py     # 检查偏好数据
-├── vllm.ipynb        # 部署vllm加速推理
-├── download_data.ipynb        # 下载数据
-├── data/
-│   └── belle_eval.json  # 用于评估的belle数据
-│   └── cmmlu.json  # 用于评估的cmmlu数据
-└── README.md             # 项目说明
+├── README.md
+├── requirements.txt
+├── sft.py          # SFT 训练主流程
+├── dpo.py          # DPO 训练主流程
+├── vllm.py     # vLLM 推理/部署
+├── utils.py              # 共享工具函数
+├── get_data.py      # 数据下载脚本
+├── data/                 # 数据目录
+├── models/               # 模型目录
+└── results/              # 结果目录
 ```
 
-### 依赖安装
+## 环境准备
 
-在项目根目录运行：
+1. 安装依赖
 
 ```bash
 pip install -r requirements.txt
 ```
 
+2. 下载数据
+
+```bash
+python download_data.py --data_dir ./data
+```
+
 ## 训练流程
 
-### 1. 数据与模型下载
+### 1. SFT 训练
 
-使用 `download_data.ipynb` 脚本下载 Belle 中文指令数据集，作为SFT的微调数据，以及偏好数据的基础。
-使用 `download_model.ipynb` 脚本下载 Qwen2.5-1.5B-Instruct 模型，作为微调的基础模型。
+```bash
+python sft_qlora.py \
+    --base_model Qwen/Qwen2.5-1.5B-Instruct \
+    --output_dir ./models/sft \
+    --belle_data_path ./data/belle.json \
+    --per_device_train_batch_size 1 \
+    --gradient_accumulation_steps 16 \
+    --learning_rate 5e-7 \
+    --num_train_epochs 1
+```
 
-### 2. 监督微调（SFT）
+### 2. 生成偏好数据
 
-使用 QLoRA 技术对 Qwen2.5-1.5B-Instruct 模型进行微调，数据集为 Belle 中文指令数据集。
+使用 `llm_preference.py` 生成偏好数据，然后使用 `llm_judge.py` 进行排序。
 
-代码：`main.ipynb` 
+### 3. DPO 训练
 
-### 3. 评估结果
+```bash
+python dpo_train.py \
+    --base_model ./models/sft \
+    --output_dir ./models/dpo \
+    --preference_data_path ./data/preference_data.json \
+    --max_samples 5000 \
+    --per_device_train_batch_size 1 \
+    --gradient_accumulation_steps 16 \
+    --learning_rate 2e-6 \
+    --num_train_epochs 1
+```
 
-使用`main.ipynb` 中代码评估CMMLU准确率，并生成评估回答，再使用 `llm_judge.py` 评估回答质量。
-注意，后一步使用大模型评估回答质量时，需要在代码开头填写自己的阿里云API_KEY。若要修改使用的模型，修改对应参数即可，默认使用qwen3.5-flash
-### 3. 对齐优化（DPO）
+## 推理部署
 
-使用微调后的 SFT 模型生成多个回答，再使用 `llm_preference.py` 构造偏好对，最后进行 DPO 训练。
+使用 vLLM 进行高效推理：
 
-代码：`main.ipynb`
-注意，使用大模型构造偏好对时，需要在代码开头填写自己的阿里云API_KEY。若要修改使用的模型，修改对应参数即可，默认使用qwen-flash
+```bash
+python vllm_inference.py \
+    --model_path ./models/dpo \
+    --data_path ./data/belle_eval.json \
+    --output_path ./results/dpo/eval_response.json \
+    --max_new_tokens 512
+```
 
-## 技术细节
+## 评估
 
-### 模型配置
-- 基座模型：Qwen2.5-1.5B-Instruct
-- 微调技术：QLORA（4-bit + LoRA）
-- 对齐方法：DPO
+使用 `llm_judge.py` 对模型输出进行评估：
 
-### 数据集
-- SFT 数据集：BelleGroup/train_2M_CN（Hugging Face）选取50000条，可调节
-- 评估数据集：CMMLU中文知识选择题+Belle最后500条数据
-- 偏好数据集：基于Belle最后开始、删除评估的500条数据的10000条数据构造，过滤得到5000条高质量数据，每条数据4个候选回答。
+```bash
+python llm_judge.py
+```
 
-### 评估
-- 知识能力：CMMLU benchmark（zero-shot）
-- 对齐效果：CMMLU准确率提升3%，llm-as-a-judge评分提升4.5%
+## 主要功能
+
+- **SFT 训练**：使用 QLoRA 方法对模型进行监督微调
+- **DPO 训练**：使用偏好数据对模型进行对齐训练
+- **vLLM 推理**：使用 vLLM 进行高效推理部署
+- **数据下载**：本地下载所需数据集
+- **模型评估**：使用大模型对模型输出进行评估
 
 ## 注意事项
 
-1. 需要准备好数据，并放置于对应的路径
-2. DPO 训练需要先完成 SFT 训练，生成 SFT 模型
-3. 本项目仅为本人技术实现，仅供参考，若有不正确之处欢迎指出
+- 训练前请确保有足够的 GPU 内存
+- 首次运行会自动下载模型和数据
+- 可以根据硬件条件调整 batch size 和 gradient accumulation steps
+- 偏好数据生成需要调用外部 API，请确保 API_KEY 已正确设置
+- 本项目仅为本人技术实现，仅供参考，若有不正确之处欢迎指出
