@@ -13,6 +13,8 @@ Chinese-LLM-Tuning/
 ├── vllm.py     # vLLM 推理/部署
 ├── utils.py              # 共享工具函数
 ├── get_data.py      # 数据下载脚本
+├── llm_judge.py      # 大模型评估脚本
+├── llm_preference.py      # 大模型生成偏好数据脚本
 ├── data/                 # 数据目录
 ├── models/               # 模型目录
 └── results/              # 结果目录
