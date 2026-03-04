@@ -32,7 +32,7 @@ pip install -r requirements.txt
 
 ### 1. 数据下载
 
-使用 `download_data.ipynb` 脚本下载 Belle 中文指令数据集。
+使用 `download_data.ipynb` 脚本下载 Belle 中文指令数据集，作为SFT的微调数据，以及偏好数据的基础。
 
 ### 2. 监督微调（SFT）
 
@@ -43,12 +43,13 @@ pip install -r requirements.txt
 ### 3. 评估结果
 
 使用`main.ipynb` 中代码评估CMMLU准确率，并生成评估回答，再使用 `llm_judge.py` 评估回答质量。
-
+注意，后一步使用大模型评估回答质量时，需要在代码开头填写自己的阿里云API_KEY。若要修改使用的模型，修改对应参数即可，默认使用qwen3.5-flash
 ### 3. 对齐优化（DPO）
 
 使用微调后的 SFT 模型生成多个回答，再使用 `llm_preference.py` 构造偏好对，最后进行 DPO 训练。
 
 代码：`main.ipynb`
+注意，使用大模型构造偏好对时，需要在代码开头填写自己的阿里云API_KEY。若要修改使用的模型，修改对应参数即可，默认使用qwen-flash
 
 ## 技术细节
 
@@ -58,7 +59,9 @@ pip install -r requirements.txt
 - 对齐方法：DPO
 
 ### 数据集
-- SFT 数据集：BelleGroup/train_2M_CN（Hugging Face）
+- SFT 数据集：BelleGroup/train_2M_CN（Hugging Face）选取50000条，可调节
+- 评估数据集：CMMLU中文知识选择题+Belle最后500条数据
+- 偏好数据集：基于Belle最后开始、删除评估的500条数据的10000条数据构造，过滤得到5000条高质量数据，每条数据4个候选回答。
 
 ### 评估
 - 知识能力：CMMLU benchmark（zero-shot）
