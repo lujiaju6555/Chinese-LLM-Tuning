@@ -63,14 +63,6 @@ python llm_preference.py \
     --model qwen-flash
 ```
 
-**参数说明：**
-- `--api_key`：DASHSCOPE_API_KEY
-- `--data_path`：输入数据路径
-- `--output_path`：输出结果路径
-- `--model`：评估模型名称
-- `--delay`：请求间隔（秒）
-- `--max_workers`：最大并行工作线程数
-
 ### 3. DPO 训练
 
 ```bash
@@ -110,16 +102,6 @@ python llm_judge.py \
     --statistics_path ./results/dpo/score_statistics.json \
     --judge_model qwen3.5-flash
 ```
-
-**参数说明：**
-- `--api_key`：DASHSCOPE_API_KEY
-- `--target`：目标评估模型（baseline/sft/dpo/grpo）
-- `--input_file`：输入文件路径
-- `--output_path`：输出结果路径
-- `--statistics_path`：统计结果保存路径
-- `--judge_model`：评估模型名称
-- `--delay`：请求间隔（秒）
-- `--max_workers`：最大并行工作线程数
 
 ## 主要功能
 
