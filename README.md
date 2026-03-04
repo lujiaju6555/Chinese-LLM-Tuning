@@ -1,13 +1,22 @@
 # Chinese-LLM-Tuning
 
-本项目用于微调中文大语言模型，包含 SFT（监督微调）和 DPO（人类偏好对齐-直接偏好优化）训练流程，以及 vLLM 推理部署。项目总体目标是在保持模型性能（中文知识准确性）的同时，提高模型在中文任务上的表现。
+本项目用于微调中文大语言模型，包含 **SFT（监督微调）**、**DPO（直接偏好优化）** 和 **vLLM 高效推理部署** 的完整后训练 pipeline。  
+基于 **Qwen2.5-1.5B-Instruct** 模型，在保持中文知识能力的同时，显著提升其中文任务表现与推理效率。
 
-使用的基线模型为Qwen2.5-1.5B-Instruct，即使该模型已是主要针对中文任务的模型，但其在中文任务上的表现仍有提升空间。
+## 📊 核心效果
 
-当前效果为：
-SFT：相比于Baseline模型，CMMLU准确率提升4%，大模型评分提升0.18分（2.5%）
-DPO：相比于SFT模型，CMMLU准确率降低1%，大模型评分提升0.16分（2.1%）
-均进行了一定的调参，包括学习率、训练轮数等，以及数据量的尝试，SFT为50000条，DPO为5000条。
+| 阶段 | 指标 | 提升效果 |
+|------|------|--------|
+| **SFT** | CMMLU 准确率 | **+4%**（vs. Baseline） |
+|         | LLM-as-a-Judge 评分 | **+0.18 分（+2.5%）** |
+| **DPO** | CMMLU 准确率 | -1%（vs. SFT） |
+|         | LLM-as-a-Judge 评分 | **+0.16 分（+2.1%）** |
+| **vLLM 部署** | 吞吐量（tokens/s） | **≈60×** 提升（vs. Hugging Face Transformers 原生推理） |
+
+> 💡 **说明**：  
+> - SFT 使用 **50k 条 BELLE 中文指令数据**，DPO 使用 **5k 条 GPT-4 构建的偏好对**；  
+> - vLLM 吞吐量优势部分源于 HF 原生推理在消费级显卡（如 RTX 4090）上受限于 `per_device_train_batch_size=1`，无法有效利用 GPU 并行能力。
+
 欢迎参与项目并进一步改进。
 
 ## 项目结构
@@ -59,7 +68,7 @@ python sft.py \
 
 ### 2. 生成偏好数据
 
-使用 `llm_preference.py` 生成偏好数据：
+使用 `llm_preference.py` 生成偏好数据，使用qwen-flash接口，模拟进行人类偏好排序：
 
 ```bash
 python llm_preference.py \
@@ -97,7 +106,7 @@ python vllm.py \
 
 ## 评估
 
-使用 `llm_judge.py` 对模型输出进行评估，可分别对Baseline模型、SFT模型和DPO模型进行评估：
+使用 `llm_judge.py` 对模型输出进行评估，使用 Qwen3.5-Flash 作为 Judge 模型，通过 LLM-as-a-Judge 方式对模型输出进行自动评估。可分别对Baseline模型、SFT模型和DPO模型进行评估 ：
 
 ```bash
 python llm_judge.py \
