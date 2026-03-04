@@ -1,0 +1,52 @@
+{
+  "results": {
+    "cmmlu_computer_science": {
+      "acc": 0.66,
+      "samples": 100
+    },
+    "cmmlu_high_school_mathematics": {
+      "acc": 0.32,
+      "samples": 100
+    },
+    "cmmlu_chinese_literature": {
+      "acc": 0.48,
+      "samples": 100
+    },
+    "cmmlu_elementary_commonsense": {
+      "acc": 0.61,
+      "samples": 100
+    },
+    "cmmlu_professional_psychology": {
+      "acc": 0.74,
+      "samples": 100
+    },
+    "cmmlu": {
+      "acc": 0.562,
+      "samples": 500
+    },
+    "cmmlu:computer_science": {
+      "acc": 0.66,
+      "acc_stderr": 0.0
+    },
+    "cmmlu:high_school_mathematics": {
+      "acc": 0.32,
+      "acc_stderr": 0.0
+    },
+    "cmmlu:chinese_literature": {
+      "acc": 0.48,
+      "acc_stderr": 0.0
+    },
+    "cmmlu:elementary_commonsense": {
+      "acc": 0.61,
+      "acc_stderr": 0.0
+    },
+    "cmmlu:professional_psychology": {
+      "acc": 0.74,
+      "acc_stderr": 0.0
+    }
+  },
+  "versions": {
+    "cmmlu_native": "1.0"
+  },
+  "config": {}
+}

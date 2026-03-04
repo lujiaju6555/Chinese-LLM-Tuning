@@ -1,0 +1,30 @@
+# 偏好对齐数据量
+MAX_SAMPLES = 5000
+
+DPO_TRAINING_ARGS = DPOConfig(
+    output_dir=MODEL_PATHS["grpo"],
+    per_device_train_batch_size=1,
+    gradient_accumulation_steps=16,
+    learning_rate=5e-6,
+    num_train_epochs=1,
+    logging_steps=10,
+    save_strategy="no",
+    
+    # DPO 核心超参
+    beta=0.1,
+    
+    # 精度与性能
+    bf16=torch.cuda.is_bf16_supported(),
+    fp16=not torch.cuda.is_bf16_supported(),
+    optim="paged_adamw_32bit",      # 适合 QLoRA 的优化器
+    lr_scheduler_type="cosine",
+    warmup_ratio=0.1,
+    
+    # 数据处理
+    remove_unused_columns=False,
+    dataloader_num_workers=2,
+    
+    # 其他
+    report_to="none",               # 不连 wandb/tensorboard
+    seed=42
+)
