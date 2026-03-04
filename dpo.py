@@ -23,7 +23,7 @@ def parse_args():
     # 训练配置
     parser.add_argument("--per_device_train_batch_size", type=int, default=1, help="每个设备的训练批次大小")
     parser.add_argument("--gradient_accumulation_steps", type=int, default=16, help="梯度累积步数")
-    parser.add_argument("--learning_rate", type=float, default=2e-6, help="学习率")
+    parser.add_argument("--learning_rate", type=float, default=5e-6, help="学习率")
     parser.add_argument("--num_train_epochs", type=int, default=1, help="训练轮数")
     parser.add_argument("--logging_steps", type=int, default=10, help="日志步数")
     parser.add_argument("--beta", type=float, default=0.1, help="DPO beta 参数")
