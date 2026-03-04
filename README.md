@@ -29,7 +29,7 @@ pip install -r requirements.txt
 2. 下载数据
 
 ```bash
-python download_data.py --data_dir ./data
+python get_data.py --data_dir ./data
 ```
 
 ## 训练流程
@@ -37,7 +37,7 @@ python download_data.py --data_dir ./data
 ### 1. SFT 训练
 
 ```bash
-python sft_qlora.py \
+python sft.py \
     --base_model Qwen/Qwen2.5-1.5B-Instruct \
     --output_dir ./models/sft \
     --belle_data_path ./data/belle.json \
@@ -54,7 +54,7 @@ python sft_qlora.py \
 ### 3. DPO 训练
 
 ```bash
-python dpo_train.py \
+python dpo.py \
     --base_model ./models/sft \
     --output_dir ./models/dpo \
     --preference_data_path ./data/preference_data.json \
@@ -70,7 +70,7 @@ python dpo_train.py \
 使用 vLLM 进行高效推理：
 
 ```bash
-python vllm_inference.py \
+python vllm.py \
     --model_path ./models/dpo \
     --data_path ./data/belle_eval.json \
     --output_path ./results/dpo/eval_response.json \
