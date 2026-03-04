@@ -30,9 +30,10 @@ pip install -r requirements.txt
 
 ## 训练流程
 
-### 1. 数据下载
+### 1. 数据与模型下载
 
 使用 `download_data.ipynb` 脚本下载 Belle 中文指令数据集，作为SFT的微调数据，以及偏好数据的基础。
+使用 `download_model.ipynb` 脚本下载 Qwen2.5-1.5B-Instruct 模型，作为微调的基础模型。
 
 ### 2. 监督微调（SFT）
 
