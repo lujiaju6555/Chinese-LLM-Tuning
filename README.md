@@ -58,7 +58,7 @@ python get_data.py --data_dir ./data --train_sample_num 50000 --eval_sample_num 
 
 ### 1. SFT 训练
 
-注意需要VPN，如果无法连接，可改用modelscope先下载基座模型到本地，然后指定本地路径（即修改base_model参数）。
+首先需要下载基座模型，注意需要VPN，如果无法连接，可改用modelscope先下载基座模型到本地，然后指定本地路径（即修改base_model参数）。
 
 ```bash
 python sft.py \
