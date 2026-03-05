@@ -73,15 +73,59 @@ python sft.py \
 
 ### 2. 生成偏好数据
 
-使用 `llm_preference.py` 生成偏好数据，首先加载SFT模型，对BELLE的偏好数据生成若干候选回答，接着使用qwen3.5-flash接口，模拟进行人类偏好排序：
+使用 `llm_preference.py` 生成偏好数据，支持三种运行模式：
+
+#### 2.1 先生成候选回答，再排序偏好（推荐）
 
 ```bash
 python llm_preference.py \
+    --mode both \
     --api_key "your_api_key" \
-    --data_path ./data/belle_preference_response.json \
+    --sft_model_path ./models/sft \
+    --preference_data_path ./data/belle_eval.json \
+    --candidates_path ./data/belle_preference_response.json \
     --output_path ./data/preference_data.json \
     --model qwen3.5-flash
 ```
+
+#### 2.2 仅生成候选回答
+
+```bash
+python llm_preference.py \
+    --mode generate \
+    --sft_model_path ./models/sft \
+    --preference_data_path ./data/belle_eval.json \
+    --candidates_path ./data/belle_preference_response.json \
+    --num_samples 4 \
+    --temperature 0.7
+```
+
+#### 2.3 仅排序偏好数据
+
+```bash
+python llm_preference.py \
+    --mode rank \
+    --api_key "your_api_key" \
+    --candidates_path ./data/belle_preference_response.json \
+    --output_path ./data/preference_data.json \
+    --model qwen3.5-flash
+```
+
+**参数说明：**
+- `--mode`：运行模式（generate/rank/both）
+- `--api_key`：DASHSCOPE_API_KEY
+- `--sft_model_path`：SFT 模型路径
+- `--baseline_model_path`：基础模型路径
+- `--preference_data_path`：偏好数据路径
+- `--candidates_path`：候选回答保存路径
+- `--output_path`：偏好数据输出路径
+- `--model`：评估模型名称
+- `--num_samples`：每条指令生成的候选回答数量
+- `--max_new_tokens`：最大生成长度
+- `--temperature`：温度参数
+- `--top_p`：top_p 参数
+- `--delay`：请求间隔（秒）
+- `--max_workers`：最大并行工作线程数
 
 ### 3. DPO 训练
 
