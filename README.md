@@ -72,14 +72,14 @@ python sft.py \
 
 ### 2. 生成偏好数据
 
-使用 `llm_preference.py` 生成偏好数据，使用qwen-flash接口，模拟进行人类偏好排序：
+使用 `llm_preference.py` 生成偏好数据，使用qwen3.5-flash接口，模拟进行人类偏好排序：
 
 ```bash
 python llm_preference.py \
     --api_key "your_api_key" \
     --data_path ./data/belle_preference_response.json \
     --output_path ./data/preference_data.json \
-    --model qwen-flash
+    --model qwen3.5-flash
 ```
 
 ### 3. DPO 训练
@@ -105,12 +105,12 @@ python vllm.py \
     --model_path ./models/dpo \
     --data_path ./data/belle_eval.json \
     --output_path ./results/dpo/eval_response.json \
-    --max_new_tokens 512
+    --max_new_tokens 2048
 ```
 
 ## 评估
 
-使用 `llm_judge.py` 对模型输出进行评估，使用 Qwen3.5-Flash 作为 Judge 模型，通过 LLM-as-a-Judge 方式对模型输出进行自动评估。可分别对Baseline模型、SFT模型和DPO模型进行评估 ：
+使用 `llm_judge.py` 对模型输出进行评估，使用 Qwen3-max 作为 Judge 模型，通过 LLM-as-a-Judge 方式对模型输出进行自动评估。可分别对Baseline模型、SFT模型和DPO模型进行评估 ：
 
 ```bash
 python llm_judge.py \
@@ -119,7 +119,7 @@ python llm_judge.py \
     --input_file ./results/dpo/eval_response.json \
     --output_path ./results/dpo/eval_result.json \
     --statistics_path ./results/dpo/score_statistics.json \
-    --judge_model qwen3.5-flash
+    --judge_model qwen3-max
 ```
 
 ## 主要功能
