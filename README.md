@@ -59,6 +59,7 @@ python get_data.py --data_dir ./data --train_sample_num 50000 --eval_sample_num 
 ### 1. SFT 训练
 
 注意需要VPN，如果无法连接，可改用modelscope先下载到本地，然后指定本地路径（即修改base_model参数）。
+
 ```bash
 python sft.py \
     --base_model Qwen/Qwen2.5-1.5B-Instruct \
@@ -72,7 +73,7 @@ python sft.py \
 
 ### 2. 生成偏好数据
 
-使用 `llm_preference.py` 生成偏好数据，使用qwen3.5-flash接口，模拟进行人类偏好排序：
+使用 `llm_preference.py` 生成偏好数据，首先加载SFT模型，对BELLE的偏好数据生成若干候选回答，接着使用qwen3.5-flash接口，模拟进行人类偏好排序：
 
 ```bash
 python llm_preference.py \
@@ -83,6 +84,8 @@ python llm_preference.py \
 ```
 
 ### 3. DPO 训练
+
+DPO训练流程：首先加载SFT模型，其次加载并清洗偏好数据，使用清洗后的数据构建适用于DPO的数据集，最后进行DPO训练并保存。
 
 ```bash
 python dpo.py \
