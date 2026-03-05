@@ -81,6 +81,7 @@ python sft.py \
 python llm_preference.py \
     --mode both \
     --api_key "your_api_key" \
+    --baseline_model_path ./models/baseline \
     --sft_model_path ./models/sft \
     --preference_data_path ./data/belle_eval.json \
     --candidates_path ./data/belle_preference_response.json \
@@ -93,6 +94,7 @@ python llm_preference.py \
 ```bash
 python llm_preference.py \
     --mode generate \
+    --baseline_model_path ./models/baseline \
     --sft_model_path ./models/sft \
     --preference_data_path ./data/belle_eval.json \
     --candidates_path ./data/belle_preference_response.json \
@@ -110,22 +112,6 @@ python llm_preference.py \
     --output_path ./data/preference_data.json \
     --model qwen3.5-flash
 ```
-
-**参数说明：**
-- `--mode`：运行模式（generate/rank/both）
-- `--api_key`：DASHSCOPE_API_KEY
-- `--sft_model_path`：SFT 模型路径
-- `--baseline_model_path`：基础模型路径
-- `--preference_data_path`：偏好数据路径
-- `--candidates_path`：候选回答保存路径
-- `--output_path`：偏好数据输出路径
-- `--model`：评估模型名称
-- `--num_samples`：每条指令生成的候选回答数量
-- `--max_new_tokens`：最大生成长度
-- `--temperature`：温度参数
-- `--top_p`：top_p 参数
-- `--delay`：请求间隔（秒）
-- `--max_workers`：最大并行工作线程数
 
 ### 3. DPO 训练
 
