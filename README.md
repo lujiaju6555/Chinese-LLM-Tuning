@@ -83,7 +83,7 @@ python llm_preference.py \
     --api_key "your_api_key" \
     --baseline_model_path ./models/baseline \
     --sft_model_path ./models/sft \
-    --preference_data_path ./data/belle_eval.json \
+    --preference_data_path ./data/belle_preference.json \
     --candidates_path ./data/belle_preference_response.json \
     --output_path ./data/preference_data.json \
     --model qwen3.5-flash
@@ -96,7 +96,7 @@ python llm_preference.py \
     --mode generate \
     --baseline_model_path ./models/baseline \
     --sft_model_path ./models/sft \
-    --preference_data_path ./data/belle_eval.json \
+    --preference_data_path ./data/belle_preference.json \
     --candidates_path ./data/belle_preference_response.json \
     --num_samples 4 \
     --temperature 0.7
