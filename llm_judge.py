@@ -5,6 +5,9 @@ from tqdm import tqdm
 import os
 import re
 import argparse
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import PeftModel
 
 
 def parse_args():
@@ -15,11 +18,14 @@ def parse_args():
     
     # API 配置
     parser.add_argument("--api_key", type=str, default="sk-075f638c1cbc4d2b91c04d38d04ccfdb", help="DASHSCOPE_API_KEY")
-    parser.add_argument("--judge_model", type=str, default="qwen3.5-flash", help="评估模型名称")
+    parser.add_argument("--judge_model", type=str, default="qwen3.5-flash", help="用于评估的大模型名称")
     
     # 目标模型配置
-    parser.add_argument("--target", type=str, default="dpo", choices=["baseline", "sft", "dpo", "grpo"], help="目标评估模型")
-    
+    parser.add_argument("--target", type=str, default="dpo", choices=["baseline", "sft", "dpo"], help="目标评估模型")
+    parser.add_argument("--sft_model_path", type=str, default="./models/sft", help="SFT 模型路径")
+    parser.add_argument("--baseline_model_path", type=str, default="Qwen/Qwen2.5-1.5B-Instruct", help="基础模型路径")
+    parser.add_argument("--eval_data_path", type=str, default="./data/belle_eval.json", help="用于评估的BELLE数据路径")
+
     # 文件路径配置
     parser.add_argument("--input_file", type=str, help="输入文件路径")
     parser.add_argument("--output_path", type=str, help="输出结果路径")
@@ -50,7 +56,7 @@ DPO_PATH = {
 }
 
 class Evaluator:
-    def __init__(self, api_key=None, base_url=None, model=judge_model):
+    def __init__(self, api_key=None, base_url=None, model=None):
         """
         初始化 Qwen 评估器
 
@@ -223,7 +229,7 @@ class Evaluator:
             future_to_item = {executor.submit(self.evaluate_single, item): item for item in valid_items}
             
             # 处理完成的任务
-            for future in tqdm(as_completed(future_to_item), total=len(future_to_item), desc=f"Evaluating with {judge_model}"):
+            for future in tqdm(as_completed(future_to_item), total=len(future_to_item), desc=f"Evaluating"):
                 try:
                     result = future.result()
                     results.append(result)
@@ -346,11 +352,171 @@ def calculate_statistics(input_path="./results/baseline/eval_with_scores.json",
 
     return statistics
 
+
+def load_sft_model(sft_model_path, baseline_model_path):
+    """
+    加载 SFT 模型
+
+    Args:
+        sft_model_path: SFT 模型路径
+        baseline_model_path: 基础模型路径
+
+    Returns:
+        model: 加载好的模型
+        tokenizer: 加载好的 tokenizer
+    """
+    # 加载 tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(sft_model_path, trust_remote_code=True)
+
+    # 检查是否是已经合并的模型还是带 LoRA 的模型
+    adapter_config_path = os.path.join(sft_model_path, "adapter_config.json")
+
+    if os.path.exists(adapter_config_path):
+        # 如果存在 adapter_config.json，说明是 LoRA 模型
+        print("检测到 LoRA 模型，正在加载...")
+
+        # 先加载基础模型
+        model = AutoModelForCausalLM.from_pretrained(
+            baseline_model_path,
+            torch_dtype=torch.float16,
+            device_map="auto",
+            trust_remote_code=True
+        )
+
+        # 加载 LoRA 权重并合并
+        model = PeftModel.from_pretrained(model, sft_model_path)
+        model = model.merge_and_unload()
+    else:
+        # 如果没有 adapter_config.json，说明已经是合并后的模型
+        print("检测到已合并模型，直接加载...")
+        model = AutoModelForCausalLM.from_pretrained(
+            sft_model_path,
+            torch_dtype=torch.float16,
+            device_map="auto",
+            trust_remote_code=True
+        )
+
+    return model, tokenizer
+
+
+def load_baseline_model(args):
+    # 加载 tokenizer
+    tokenizer_baseline = AutoTokenizer.from_pretrained(args.baseline_model_path, trust_remote_code=True)
+
+    # 加载模型
+    model_baseline = AutoModelForCausalLM.from_pretrained(
+        args.baseline_model_path,
+        device_map="auto",
+        trust_remote_code=True
+    )
+
+    return model_baseline, tokenizer_baseline
+
+
+
+def generate_responses(
+        data_path,
+        tokenizer,
+        model,
+        save_path,
+        max_new_tokens=512,
+        device="cuda"
+):
+    """
+    使用给定的 tokenizer 和 model 对 BELLE 评估数据生成完整回答。
+
+    Args:
+        data_path (str): BELLE eval JSON 文件路径，格式为 [{"instruction": "...", "input": "...", "output": "..."}, ...]
+        tokenizer: Hugging Face tokenizer（需支持 apply_chat_template）
+        model: Hugging Face causal language model（已加载到 device）
+        save_path (str): 生成结果保存路径（.json）
+        max_new_tokens (int): 最大生成长度，默认 512（足够完整回答）
+        device (str): 推理设备，默认 "cuda"
+    """
+    # 加载评估数据
+    with open(data_path, "r", encoding="utf-8") as f:
+        eval_data = json.load(f)
+
+    results = []
+
+    model.eval()  # 确保在 eval 模式
+    with torch.no_grad():
+        for item in tqdm(eval_data, desc="Generating responses"):
+            # 构建 messages（BELLE 是单轮）
+            messages = [
+                {"role": "user",
+                 "content": item["instruction"] + ("\n" + item["input"] if item["input"].strip() else "")}
+            ]
+
+            # 使用 tokenizer 的 chat template 构建 prompt
+            prompt = tokenizer.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=True  # 添加 assistant 开始标记
+            )
+
+            # Tokenize
+            inputs = tokenizer(
+                prompt,
+                return_tensors="pt",
+                padding=False,
+                truncation=True,
+                max_length=2048  # 防止超长输入
+            ).to(device)
+
+            # 生成
+            outputs = model.generate(
+                **inputs,
+                max_new_tokens=max_new_tokens,
+                do_sample=False,  # 贪心解码，确保可复现
+                pad_token_id=tokenizer.pad_token_id,
+                eos_token_id=tokenizer.eos_token_id
+            )
+
+            # 解码生成部分（跳过 prompt）
+            generated_ids = outputs[0][inputs["input_ids"].shape[1]:]
+            response = tokenizer.decode(generated_ids, skip_special_tokens=True)
+
+            # 保存结果（保留原字段 + 新增）
+            result_item = {
+                "instruction": item["instruction"],
+                "input": item["input"],
+                "ground_truth": item.get("output", ""),  # 原始答案（可选）
+                "response": response.strip()
+            }
+            results.append(result_item)
+
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    # 保存结果
+    with open(save_path, "w", encoding="utf-8") as f:
+        json.dump(results, f, ensure_ascii=False, indent=2)
+
+    print(f"✅ 生成完成！共 {len(results)} 条，已保存至: {save_path}")
+
+
 # 使用示例
 if __name__ == "__main__":
     # 解析命令行参数
     args = parse_args()
-    
+
+    # 如果待评估回答数据不存在，则使用目标模型生成待评估回答数据
+    if not os.path.exists(args.input_file):
+
+        # 加载模型
+        if args.target == 'baseline':
+            model, tokenizer = load_baseline_model(args)
+        else:
+            model, tokenizer = load_sft_model(args.sft_model_path, args.baseline_model_path)
+
+        # 生成回答
+        generate_responses(
+            data_path=args.eval_data_path,
+            tokenizer=tokenizer,
+            model=model,
+            save_path=args.input_file,
+            max_new_tokens=2048
+        )
+
     # 初始化评估器
     evaluator = Evaluator(api_key=args.api_key, model=args.judge_model)
 
@@ -362,8 +528,6 @@ if __name__ == "__main__":
         config = SFT_PATH
     elif args.target == 'dpo':
         config = DPO_PATH
-    elif args.target == 'grpo':
-        config = BASELINE_PATH
     
     # 使用命令行参数覆盖默认路径
     input_file = args.input_file or config['input_file']

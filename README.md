@@ -144,12 +144,15 @@ python vllm.py \
 
 ## 评估
 
-使用 `llm_judge.py` 对模型输出进行评估，使用 Qwen3-max 作为 Judge 模型，通过 LLM-as-a-Judge 方式对模型输出进行自动评估。可分别对Baseline模型、SFT模型和DPO模型进行评估 ：
+使用 `llm_judge.py` 对模型输出进行评估，使用 Qwen3-max 作为 Judge 模型，通过 LLM-as-a-Judge 方式对模型输出进行自动评估。可分别对Baseline模型、SFT模型和DPO模型进行评估，首先使用模型针对评估数据，生成回答，接着调用大模型接口对回答进行评估，最后统计评分并保存。
 
 ```bash
 python llm_judge.py \
     --api_key "your_api_key" \
     --target dpo \
+    --eval_data_path ./data/belle_eval.json \
+    --baseline_model_path ./models/baseline \
+    --sft_model_path ./models/dpo \
     --input_file ./results/dpo/eval_response.json \
     --output_path ./results/dpo/eval_result.json \
     --statistics_path ./results/dpo/score_statistics.json \
