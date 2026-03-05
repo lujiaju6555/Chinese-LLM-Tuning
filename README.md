@@ -47,7 +47,8 @@ pip install -r requirements.txt
 
 2. 下载数据
 
-CMMLU数据已放于data目录下，无需下载。此处下载BELLE数据，包含50k条指令数据、500条评估数据和5k条偏好对数据。
+CMMLU数据已放于data目录下，无需下载。此处下载BELLE数据，包含50k条指令数据、500条评估数据和5k条偏好对数据，可调整数据量。
+注意需要链接VPN。
 
 ```bash
 python get_data.py --data_dir ./data --train_sample_num 50000 --eval_sample_num 500 --preference_sample_num 5000
@@ -57,6 +58,7 @@ python get_data.py --data_dir ./data --train_sample_num 50000 --eval_sample_num 
 
 ### 1. SFT 训练
 
+注意需要VPN，如果无法连接，可改用modelscope先下载到本地，然后指定本地路径（即修改base_model参数）。
 ```bash
 python sft.py \
     --base_model Qwen/Qwen2.5-1.5B-Instruct \
