@@ -4,6 +4,7 @@ import argparse
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import DPOConfig
 from utils import load_preference_data, build_dpo_dataset, train_dpo
+from peft import PeftModel
 
 
 def parse_args():
@@ -13,7 +14,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="DPO 模型训练脚本")
 
     # 模型配置
-    parser.add_argument("--base_model", type=str, default="./models/sft", help="SFT 模型路径")
+    parser.add_argument("--baseline_model_path", type=str, default="Qwen/Qwen2.5-1.5B-Instruct", help="基础模型路径")
+    parser.add_argument("--sft_model_path", type=str, default="./models/sft", help="SFT 模型路径")
     parser.add_argument("--output_dir", type=str, default="./models/dpo", help="DPO 模型保存路径")
 
     # 数据配置
@@ -36,15 +38,19 @@ def main(args):
     DPO 训练主流程
     """
     # 加载 tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(args.base_model, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(args.sft_model_path, trust_remote_code=True)
 
     # 加载 SFT 模型
-    print(f"加载 SFT 模型: {args.base_model}")
+    print(f"加载 SFT 模型: {args.sft_model_path}")
     base_model = AutoModelForCausalLM.from_pretrained(
-        args.base_model,
+        args.baseline_model_path,
         device_map="auto",
         trust_remote_code=True
     )
+
+    # 加载 LoRA 权重并合并
+    base_model = PeftModel.from_pretrained(base_model, args.sft_model_path)
+    base_model = base_model.merge_and_unload()
 
     # 加载并清洗偏好数据
     preference_data = load_preference_data(args.preference_data_path, args.max_samples)
