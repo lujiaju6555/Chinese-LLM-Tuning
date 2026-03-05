@@ -47,8 +47,10 @@ pip install -r requirements.txt
 
 2. 下载数据
 
+CMMLU数据已放于data目录下，无需下载。此处下载BELLE数据，包含50k条指令数据、500条评估数据和5k条偏好对数据。
+
 ```bash
-python get_data.py --data_dir ./data
+python get_data.py --data_dir ./data --train_sample_num 50000 --eval_sample_num 500 --preference_sample_num 5000
 ```
 
 ## 训练流程
