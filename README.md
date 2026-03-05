@@ -173,5 +173,8 @@ python llm_judge.py \
 - 首次运行会自动下载模型和数据
 - 可以根据硬件条件调整 batch size 和 gradient accumulation steps
 - 偏好数据生成需要调用外部 API，请确保 API_KEY 已正确设置
-
 - 本项目仅为本人技术实现，仅供参考，若有不正确之处欢迎指出
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/image?repos=lujiaju6555/Chinese-LLM-Tuning&type=date&legend=top-left)](https://www.star-history.com/?repos=lujiaju6555%2FChinese-LLM-Tuning&type=date&legend=top-left)
