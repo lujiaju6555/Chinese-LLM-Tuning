@@ -17,7 +17,7 @@
 > - SFT 使用 **50k 条 BELLE 中文指令数据**，DPO 使用 **5k 条 GPT-4 构建的偏好对**；  
 > - vLLM 吞吐量优势部分源于 HF 原生推理在消费级显卡（如 RTX 4090）上受限于 `per_device_train_batch_size=1`，无法有效利用 GPU 并行能力。
 
-欢迎参与项目并进一步改进。
+欢迎参与项目并进一步改进，目前的结果放在了results文件夹下，经过了一定的调参/调数据量。
 
 ## 项目结构
 
@@ -48,7 +48,7 @@ pip install -r requirements.txt
 2. 下载数据
 
 CMMLU数据已放于data目录下，无需下载。此处下载BELLE数据，包含50k条指令数据、500条评估数据和5k条偏好对数据，可调整数据量。
-注意需要链接VPN。
+注意下载需要链接VPN。
 
 ```bash
 python get_data.py --data_dir ./data --train_sample_num 50000 --eval_sample_num 500 --preference_sample_num 5000
@@ -173,4 +173,5 @@ python llm_judge.py \
 - 首次运行会自动下载模型和数据
 - 可以根据硬件条件调整 batch size 和 gradient accumulation steps
 - 偏好数据生成需要调用外部 API，请确保 API_KEY 已正确设置
+
 - 本项目仅为本人技术实现，仅供参考，若有不正确之处欢迎指出
