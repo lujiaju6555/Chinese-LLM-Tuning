@@ -17,7 +17,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="大模型评估脚本")
     
     # API 配置
-    parser.add_argument("--api_key", type=str, default="sk-075f638c1cbc4d2b91c04d38d04ccfdb", help="DASHSCOPE_API_KEY")
+    parser.add_argument("--api_key", type=str, default="", help="DASHSCOPE_API_KEY")
     parser.add_argument("--judge_model", type=str, default="qwen3.5-flash", help="用于评估的大模型名称")
     
     # 目标模型配置
@@ -567,3 +567,4 @@ if __name__ == "__main__":
 
     if stats:
         print(f"\n🎉 总平均分: {stats['scores']['average_score']}")
+
