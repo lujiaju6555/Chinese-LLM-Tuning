@@ -21,7 +21,7 @@ def parse_args():
     parser.add_argument("--mode", type=str, default="rank", choices=["generate", "rank", "both"], help="运行模式: generate(生成候选回答), rank(排序偏好), both(先生成后排序)")
     
     # API 配置
-    parser.add_argument("--api_key", type=str, default="sk-2c3bde2ec4ea430f9b1daccaf20313e5", help="DASHSCOPE_API_KEY")
+    parser.add_argument("--api_key", type=str, default="", help="DASHSCOPE_API_KEY")
     parser.add_argument("--model", type=str, default="qwen-flash", help="评估模型名称")
     
     # SFT 模型配置
@@ -487,4 +487,5 @@ if __name__ == '__main__':
             print("❌ 没有有效的数据项")
             exit(1)
     
+
     print("\n✅ 任务完成！")
