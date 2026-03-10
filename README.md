@@ -86,7 +86,7 @@ python llm_preference.py \
     --preference_data_path ./data/belle_preference.json \
     --candidates_path ./data/belle_preference_response.json \
     --output_path ./data/preference_data.json \
-    --model qwen3.5-flash
+    --model qwen-flash
 ```
 
 #### 2.2 仅生成候选回答
@@ -110,7 +110,7 @@ python llm_preference.py \
     --api_key "your_api_key" \
     --candidates_path ./data/belle_preference_response.json \
     --output_path ./data/preference_data.json \
-    --model qwen3.5-flash
+    --model qwen-flash
 ```
 
 ### 3. DPO 训练
@@ -178,3 +178,4 @@ python llm_judge.py \
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/image?repos=lujiaju6555/Chinese-LLM-Tuning&type=date&legend=top-left)](https://www.star-history.com/?repos=lujiaju6555%2FChinese-LLM-Tuning&type=date&legend=top-left)
+
